@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -33,6 +34,7 @@ var (
 	disableStdout       atomic.Bool
 	logFile             *os.File
 	mu                  sync.Mutex
+	newline             string = "\n"
 )
 
 func DisableStdout() {
@@ -40,6 +42,9 @@ func DisableStdout() {
 }
 
 func EnableLogFile(folderPath string) {
+	if runtime.GOOS == "windows" {
+		newline = "\r\n"
+	}
 	logFolderPath.Store(folderPath)
 }
 
@@ -111,18 +116,19 @@ func out(logger *log.Logger, content string) {
 }
 
 func getLogFilePrefix() string {
-
 	prefix := log_file_prefix
 	if customPrefix, ok := customLogFilePrefix.Load().(string); ok && len(customPrefix) > 0 {
 		prefix = customPrefix
 	}
 	return prefix
 }
+
 func getFullLogFilePath() string {
 	filename := getLogFilePrefix() + "_" + time.Now().Format("060102") + ".log"
 	path := filepath.Join(logFolderPath.Load().(string), filename)
 	return path
 }
+
 func writeToFile(content string) {
 	if !hasLogFile() {
 		return
@@ -141,8 +147,7 @@ func writeToFile(content string) {
 			return
 		}
 	}
-
-	if _, err := logFile.WriteString(content + "\n"); err != nil {
+	if _, err := logFile.WriteString(content + newline); err != nil {
 		errLog.Output(2, fmt.Sprintf("Failed to write to logfile: %v", err))
 	}
 }
