@@ -1,13 +1,14 @@
 package prodlog_test
 
 import (
-	"github.com/durelius/go-prodlog/internal/prodlog"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/durelius/go-prodlog"
 )
 
 func todayString() string {
