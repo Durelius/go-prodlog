@@ -142,7 +142,7 @@ func writeToFile(content string) {
 		}
 	}
 
-	if _, err := logFile.WriteString(content); err != nil {
+	if _, err := logFile.WriteString(content + "\n"); err != nil {
 		errLog.Output(2, fmt.Sprintf("Failed to write to logfile: %v", err))
 	}
 }
