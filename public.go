@@ -25,11 +25,14 @@ var (
 	errLog = log.New(os.Stderr, errLogPreStr, log.LstdFlags|log.Llongfile)
 )
 
+const log_file_prefix = "log"
+
 var (
-	logFolderPath atomic.Value
-	disableStdout atomic.Bool
-	logFile       *os.File
-	mu            sync.Mutex
+	customLogFilePrefix atomic.Value
+	logFolderPath       atomic.Value
+	disableStdout       atomic.Bool
+	logFile             *os.File
+	mu                  sync.Mutex
 )
 
 func DisableStdout() {
@@ -38,6 +41,10 @@ func DisableStdout() {
 
 func EnableLogFile(folderPath string) {
 	logFolderPath.Store(folderPath)
+}
+
+func SetLogFilePrefix(prefix string) {
+	customLogFilePrefix.Store(prefix)
 }
 
 func Info(v ...any) {
@@ -103,19 +110,32 @@ func out(logger *log.Logger, content string) {
 	logger.Output(3, content)
 }
 
+func getLogFilePrefix() string {
+
+	prefix := log_file_prefix
+	if customPrefix, ok := customLogFilePrefix.Load().(string); ok && len(customPrefix) > 0 {
+		prefix = customPrefix
+	}
+	return prefix
+}
+func getFullLogFilePath() string {
+	filename := getLogFilePrefix() + "_" + time.Now().Format("060102") + ".log"
+	path := filepath.Join(logFolderPath.Load().(string), filename)
+	return path
+}
 func writeToFile(content string) {
 	if !hasLogFile() {
 		return
 	}
 	mu.Lock()
 	defer mu.Unlock()
-	filename := filepath.Join(logFolderPath.Load().(string), "log_"+time.Now().Format("060102"))
-	if logFile == nil || logFile.Name() != filename {
+	path := getFullLogFilePath()
+	if logFile == nil || logFile.Name() != path {
 		if logFile != nil {
 			logFile.Close()
 		}
 		var err error
-		logFile, err = os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		logFile, err = os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			errLog.Output(2, fmt.Sprintf("Failed to open new logfile: %v", err))
 			return
