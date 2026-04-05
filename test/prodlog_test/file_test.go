@@ -16,7 +16,7 @@ func todayString() string {
 }
 
 func logPath(dir string) string {
-	return filepath.Join(dir, "log_"+todayString())
+	return filepath.Join(dir, "log_"+todayString()+".log")
 }
 
 func readLog(t *testing.T, dir string) string {

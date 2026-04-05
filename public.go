@@ -53,37 +53,37 @@ func SetLogFilePrefix(prefix string) {
 }
 
 func Info(v ...any) {
-	output := fmt.Sprintln(v...)
+	output := outLogPreStr + fmt.Sprintln(v...)
 	writeToFile(output)
 	out(infLog, output)
 }
 
 func Infof(format string, v ...any) {
-	output := fmt.Sprintf(format, v...)
+	output := outLogPreStr + fmt.Sprintf(format, v...)
 	writeToFile(output)
 	out(infLog, output)
 }
 
 func Warning(v ...any) {
-	output := fmt.Sprintln(v...)
+	output := warLogPreStr + fmt.Sprintln(v...)
 	writeToFile(output)
 	out(warLog, output)
 }
 
 func Warningf(format string, v ...any) {
-	output := fmt.Sprintf(format, v...)
+	output := warLogPreStr + fmt.Sprintf(format, v...)
 	writeToFile(output)
 	out(warLog, output)
 }
 
 func Error(v ...any) {
-	output := fmt.Sprintln(v...)
+	output := errLogPreStr + fmt.Sprintln(v...)
 	writeToFile(output)
 	out(errLog, output)
 }
 
 func Errorf(format string, v ...any) {
-	output := fmt.Sprintf(format, v...)
+	output := errLogPreStr + fmt.Sprintf(format, v...)
 	writeToFile(output)
 	out(errLog, output)
 }
