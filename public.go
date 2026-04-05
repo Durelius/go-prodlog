@@ -12,12 +12,14 @@ import (
 )
 
 const (
+	journal_ctl_fatal   = "<1>"
 	journal_ctl_error   = "<3>"
 	journal_ctl_warning = "<4>"
 	journal_ctl_info    = "<6>"
 	outLogPreStr        = journal_ctl_info + "INFO: "
 	warLogPreStr        = journal_ctl_warning + "WARNING: "
 	errLogPreStr        = journal_ctl_error + "ERROR: "
+	fatalLogPreStr      = journal_ctl_fatal + "FATAL ERROR: "
 )
 
 var (
@@ -53,51 +55,51 @@ func SetLogFilePrefix(prefix string) {
 }
 
 func Info(v ...any) {
-	output := outLogPreStr + fmt.Sprintln(v...)
-	writeToFile(output)
+	output := fmt.Sprintln(v...)
+	writeToFile(outLogPreStr, output)
 	out(infLog, output)
 }
 
 func Infof(format string, v ...any) {
-	output := outLogPreStr + fmt.Sprintf(format, v...)
-	writeToFile(output)
+	output := fmt.Sprintf(format, v...)
+	writeToFile(outLogPreStr, output)
 	out(infLog, output)
 }
 
 func Warning(v ...any) {
-	output := warLogPreStr + fmt.Sprintln(v...)
-	writeToFile(output)
+	output := fmt.Sprintln(v...)
+	writeToFile(warLogPreStr, output)
 	out(warLog, output)
 }
 
 func Warningf(format string, v ...any) {
-	output := warLogPreStr + fmt.Sprintf(format, v...)
-	writeToFile(output)
+	output := fmt.Sprintf(format, v...)
+	writeToFile(warLogPreStr, output)
 	out(warLog, output)
 }
 
 func Error(v ...any) {
-	output := errLogPreStr + fmt.Sprintln(v...)
-	writeToFile(output)
+	output := fmt.Sprintln(v...)
+	writeToFile(errLogPreStr, output)
 	out(errLog, output)
 }
 
 func Errorf(format string, v ...any) {
-	output := errLogPreStr + fmt.Sprintf(format, v...)
-	writeToFile(output)
+	output := fmt.Sprintf(format, v...)
+	writeToFile(errLogPreStr, output)
 	out(errLog, output)
 }
 
 func Fatal(v ...any) {
 	output := fmt.Sprintln(v...)
-	writeToFile(output)
+	writeToFile(fatalLogPreStr, output)
 	errLog.Output(2, output)
 	os.Exit(1)
 }
 
 func Fatalf(format string, v ...any) {
 	output := fmt.Sprintf(format, v...)
-	writeToFile(output)
+	writeToFile(fatalLogPreStr, output)
 	errLog.Output(2, output)
 
 	os.Exit(1)
@@ -129,7 +131,7 @@ func getFullLogFilePath() string {
 	return path
 }
 
-func writeToFile(content string) {
+func writeToFile(prefix, content string) {
 	if !hasLogFile() {
 		return
 	}
@@ -147,7 +149,7 @@ func writeToFile(content string) {
 			return
 		}
 	}
-	if _, err := logFile.WriteString(content + newline); err != nil {
+	if _, err := fmt.Fprintf(logFile, "%s: %s %s %s", time.Now().Format("15:04:05"), prefix, content, newline); err != nil {
 		errLog.Output(2, fmt.Sprintf("Failed to write to logfile: %v", err))
 	}
 }
