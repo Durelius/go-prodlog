@@ -57,51 +57,111 @@ func SetLogFilePrefix(prefix string) {
 func Info(v ...any) {
 	output := fmt.Sprintln(v...)
 	writeToFile(outLogPreStr, output)
-	out(infLog, output)
+	out(infLog, 0, output)
+}
+
+// InfoDepth behaves like Info but adds skip extra stack frames when reporting
+// the source file and line, so a logging wrapper can have its own caller
+// reported instead of the wrapper itself. Direct callers should use Info.
+func InfoDepth(skip int, v ...any) {
+	output := fmt.Sprintln(v...)
+	writeToFile(outLogPreStr, output)
+	out(infLog, skip, output)
 }
 
 func Infof(format string, v ...any) {
 	output := fmt.Sprintf(format, v...)
 	writeToFile(outLogPreStr, output)
-	out(infLog, output)
+	out(infLog, 0, output)
+}
+
+// InfofDepth behaves like Infof but adds skip extra stack frames when reporting
+// the source file and line.
+func InfofDepth(skip int, format string, v ...any) {
+	output := fmt.Sprintf(format, v...)
+	writeToFile(outLogPreStr, output)
+	out(infLog, skip, output)
 }
 
 func Warning(v ...any) {
 	output := fmt.Sprintln(v...)
 	writeToFile(warLogPreStr, output)
-	out(warLog, output)
+	out(warLog, 0, output)
+}
+
+// WarningDepth behaves like Warning but adds skip extra stack frames when
+// reporting the source file and line.
+func WarningDepth(skip int, v ...any) {
+	output := fmt.Sprintln(v...)
+	writeToFile(warLogPreStr, output)
+	out(warLog, skip, output)
 }
 
 func Warningf(format string, v ...any) {
 	output := fmt.Sprintf(format, v...)
 	writeToFile(warLogPreStr, output)
-	out(warLog, output)
+	out(warLog, 0, output)
+}
+
+// WarningfDepth behaves like Warningf but adds skip extra stack frames when
+// reporting the source file and line.
+func WarningfDepth(skip int, format string, v ...any) {
+	output := fmt.Sprintf(format, v...)
+	writeToFile(warLogPreStr, output)
+	out(warLog, skip, output)
 }
 
 func Error(v ...any) {
 	output := fmt.Sprintln(v...)
 	writeToFile(errLogPreStr, output)
-	out(errLog, output)
+	out(errLog, 0, output)
+}
+
+// ErrorDepth behaves like Error but adds skip extra stack frames when reporting
+// the source file and line.
+func ErrorDepth(skip int, v ...any) {
+	output := fmt.Sprintln(v...)
+	writeToFile(errLogPreStr, output)
+	out(errLog, skip, output)
 }
 
 func Errorf(format string, v ...any) {
 	output := fmt.Sprintf(format, v...)
 	writeToFile(errLogPreStr, output)
-	out(errLog, output)
+	out(errLog, 0, output)
+}
+
+// ErrorfDepth behaves like Errorf but adds skip extra stack frames when
+// reporting the source file and line.
+func ErrorfDepth(skip int, format string, v ...any) {
+	output := fmt.Sprintf(format, v...)
+	writeToFile(errLogPreStr, output)
+	out(errLog, skip, output)
 }
 
 func Fatal(v ...any) {
-	output := fmt.Sprintln(v...)
-	writeToFile(fatalLogPreStr, output)
-	errLog.Output(2, output)
-	os.Exit(1)
+	fatal(0, fmt.Sprintln(v...))
+}
+
+// FatalDepth behaves like Fatal but adds skip extra stack frames when reporting
+// the source file and line.
+func FatalDepth(skip int, v ...any) {
+	fatal(skip, fmt.Sprintln(v...))
 }
 
 func Fatalf(format string, v ...any) {
-	output := fmt.Sprintf(format, v...)
-	writeToFile(fatalLogPreStr, output)
-	errLog.Output(2, output)
+	fatal(0, fmt.Sprintf(format, v...))
+}
 
+// FatalfDepth behaves like Fatalf but adds skip extra stack frames when
+// reporting the source file and line.
+func FatalfDepth(skip int, format string, v ...any) {
+	fatal(skip, fmt.Sprintf(format, v...))
+}
+
+func fatal(skip int, output string) {
+	writeToFile(fatalLogPreStr, output)
+	errLog.Output(3+skip, output)
 	os.Exit(1)
 }
 
@@ -110,11 +170,11 @@ func hasLogFile() bool {
 	return ok && len(path) > 0
 }
 
-func out(logger *log.Logger, content string) {
+func out(logger *log.Logger, skip int, content string) {
 	if disableStdout.Load() {
 		return
 	}
-	logger.Output(3, content)
+	logger.Output(3+skip, content)
 }
 
 func getLogFilePrefix() string {
